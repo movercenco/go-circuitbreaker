@@ -9,6 +9,11 @@ import (
 	"time"
 )
 
+var (
+	host       = "127.0.0.1:9010"
+	downstream = "http://127.0.0.1:9011/"
+)
+
 func main() {
 	breaker := breaker()
 	client := client()
@@ -22,7 +27,7 @@ func main() {
 		_, _ = w.Write(body)
 	})
 
-	log.Fatal(http.ListenAndServe("127.0.0.1:9003", nil))
+	log.Fatal(http.ListenAndServe(host, nil))
 }
 
 func client() http.Client {
@@ -52,7 +57,7 @@ func breaker() *gobreaker.CircuitBreaker {
 
 func do(client http.Client, breaker *gobreaker.CircuitBreaker) ([]byte, error) {
 	body, err := breaker.Execute(func() (interface{}, error) {
-		resp, err := client.Get("http://127.0.0.1:9001/")
+		resp, err := client.Get(downstream)
 		if err != nil {
 			return []byte(`{"message": "timeout"}`), fmt.Errorf("timeout: %v", err.Error())
 		}
